@@ -10,7 +10,9 @@ https://medium.com/swlh/tutorial-getting-started-with-rust-and-redis-69041dd3827
 
 ##string 取值
 `let resulta=coin_price.replace("\"","");`
-
+https://blog.51cto.com/u_12270378/2810325
 ## 部署
 需后台开启redis 
 取值方式:coin+name get
+
+

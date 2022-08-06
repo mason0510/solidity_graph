@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde_json::Value;
-use crate::global::global::{NO_PARAMS,CELO_PRICE};
+use crate::global::global::{NO_PARAMS,CELO_QUERY_PRICE};
+use crate::models::detail::detail_coin;
 use crate::utils::errors::MyError;
+use sqlx_model::Select;
 
 pub async fn get(vector0: Vec<String>, vector1: Vec<String>, url: String) -> Result<HashMap<String, String>, MyError> {
      if  vector0.len() == 0|| vector1.len()==0{
@@ -73,7 +75,7 @@ pub async fn post(vector0: Vec<String>, vector1: Vec<String>, url: &String) -> R
 }
 
 
-pub async fn block_post(url: &String) -> Result<HashMap<String, Value>, MyError> {
+pub async fn block_post(url: &String,pool:&sqlx::Pool<sqlx::MySql>) -> Result<HashMap<String, Value>, MyError> {
     // post 请求要创建client
     let client = reqwest::Client::new();
     // 组装header
@@ -82,11 +84,18 @@ pub async fn block_post(url: &String) -> Result<HashMap<String, Value>, MyError>
     // headers.insert("Content-Type", mytype);
     let mut data = HashMap::new();
 
-    let type_value = (CELO_PRICE).to_string();
-    data.insert("query",type_value);
+    let result= Select::type_new::<detail_coin>().fetch_all_by_where::<detail_coin,_>(Some("id=1".to_string()), pool).await;
+    let vector_res=result.unwrap();
+    //初始化字符串
+    let mut queryCommand="";
+    vector_res.iter().for_each(|v|{
+        if v.coinName=="celo" {
+            queryCommand=&v.queryCommand;
+        }
+    });
+    data.insert("query",queryCommand.to_string());
     let type_value = HeaderValue::from_str("application/json").unwrap();
     headers.insert("Content-Type", type_value);
-//     // 组装要提交的数据
     // 发起post请求并返回
     Ok(client
         .post(url)
